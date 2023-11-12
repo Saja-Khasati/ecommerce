@@ -43,6 +43,11 @@ const userSchema = new Schema({
         type:String,
         default:'User',
         enum:['User','Admin'],
+    },
+    sendCode:{
+        type:String,
+        default:null
+
     }
 },
 {

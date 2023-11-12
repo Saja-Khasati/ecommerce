@@ -1,11 +1,11 @@
 import slugify from 'slugify'
-import cloudinary from "../../../DB/cloudinary.js";
+import cloudinary from "../../servecies/cloudinary.js";
 import categoryModel from "../../../DB/category.model.js";
 
 
 
 export const getCategories =async(req,res)=>{
-    const categiories = await categoryModel.find()
+    const categiories = await categoryModel.find().populate('subcategory');
     return res.status(200).json({message:"success",categiories});
 }
 
@@ -18,7 +18,8 @@ export const createCategory =async(req,res)=>{
     const {secure_url,public_id} =await cloudinary.uploader.upload(req.file.path,{
         folder:`${process.env.APP_NAME}/categories`
     })
-    const cat= await categoryModel.create({name,slug:slugify(name),image:{secure_url,public_id}});
+    const cat= await categoryModel.create({name,slug:slugify(name),image:{secure_url,public_id},
+createdBy:req.user._id,updatedBy:req.user._id});
 console.log(cat);
 return res.status(201).json({message:"success",cat});
    
@@ -68,6 +69,7 @@ export const updateCategory = async(req,res)=>{
         await cloudinary.uploader.destroy(category.image.public_id) // احذف الصورة السابقة 
         category.image = {secure_url,public_id};   
     }
+    category.updatedBy=req.user._id;
     await category.save();
     return res.status(200).json({message:"success",category});
 }
