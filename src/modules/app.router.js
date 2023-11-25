@@ -4,7 +4,7 @@ import productsRouter from './products/products.router.js';
 import AuthRouter from './Auth/auth.router.js';
 import subCategoryRouter from './subcategory/subcategory.router.js';
 import couponRouter from './coupon/coupon.router.js';
-import { sendEmail } from '../servecies/email.js';
+import cartRouter from '../modules/cart/cart.router.js';
 
 const initApp = async (app,express)=>{
     try{
@@ -18,6 +18,7 @@ const initApp = async (app,express)=>{
         app.use('/products',productsRouter);
         app.use('/subcategory',subCategoryRouter);
         app.use('/coupon',couponRouter);
+        app.use('/cart',cartRouter);
      
      
         app.get('*',(req,res)=>{
