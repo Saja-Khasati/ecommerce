@@ -5,11 +5,11 @@ import jwt from 'jsonwebtoken';
 import { sendEmail } from "../../servecies/email.js";
 import { customAlphabet } from "nanoid";
 
-export const signup = async (req,res)=>{
+export const signup = async (req,res,next)=>{
     const {userName,email,password} = req.body;
     const user = await userModel.findOne({email});
     if(user){
-        return res.status(409).json({message:"email is already exists"});
+       return next(new Error("email is already exists",{cause:409}));
     }
     const hashedPassword =  bcrypt.hashSync(password,parseInt(process.env.SALTROUND));
     const {secure_url,public_id} =await cloudinary.uploader.upload(req.file.path,{
@@ -241,22 +241,20 @@ a[x-apple-data-detectors] {
 
 }
 
-export const confirmEmail = async(req,res)=>{
+export const confirmEmail = async(req,res,next)=>{
     const token = req.params.token;
     const decoded = jwt.verify(token,process.env.CONFIRMEMAILSECRET);
     if(!decoded){
-        return res.status(404).json({message:"Invalid token"});
-
+        return next(new Error("Invalid token",{cause:404}));
     }
     const user = await userModel.findOneAndUpdate({email:decoded.email,confirmEmail:false},{confirmEmail:true});
     if(!user){
-        return res.status(400).json({message:"Invalid verify your email or your email is verified"});
-        
+     return next(new Error("Invalid verify your email or your email is verified",{cause:400}));        
     }
     return res.status(200).json({message:" your email is verified"});
 }
 
-export const sendCode = async(req,res)=>{
+export const sendCode = async(req,res,next)=>{
     const {email} = req.body;
     let code = customAlphabet('1234567890abcdzABCDZ', 4);
     code= code();
@@ -266,7 +264,7 @@ export const sendCode = async(req,res)=>{
     return res.status(200).json({message:"success",user});
 }
 
-export const forgetPassword = async(req,res)=>{
+export const forgetPassword = async(req,res,next)=>{
     const {email,password,code}=req.body;
     const user = await userModel.findOne({email});
     if(!user){
@@ -281,16 +279,20 @@ export const forgetPassword = async(req,res)=>{
     }
     user.password=await bcrypt.hash(password,parseInt(process.env.SALTROUND));
     user.sendCode = null;
+    user.changePasswordTime=Date.now();
     await user.save();
     return res.status(200).json({message:"success"});
 
 }
 
-export const signin = async(req,res)=>{
+export const signin = async(req,res,next)=>{
     const {email,password}= req.body;
     const user = await userModel.findOne({email});
     if(!user){
         return res.status(400).json({message:"data Invalid (email)"});
+    }
+    if(!user.confirmEmail){
+      return res.status(400).json({message:"plz confirm your email"});
     }
     const match = await bcrypt.compare(password,user.password);
     if(!match){
@@ -302,4 +304,9 @@ export const signin = async(req,res)=>{
     const refreshToken = jwt.sign({id:user._id,role:user.role,status:user.status},process.env.LOGINSECRET,{expiresIn:60*60*24*30});
    
     return res.status(200).json({message:"success",token,refreshToken});
+}
+
+export const deleteInvalidConfirm = async(req,res,next)=>{
+  const users = await userModel.deleteMany({confirmEmail:false});
+  return res.status(200).json({message:"success"});
 }

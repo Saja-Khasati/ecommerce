@@ -4,11 +4,11 @@ import subCategoryModel from "../../../DB/subcategory.model.js";
 import cloudinary from "../../servecies/cloudinary.js";
 import productModel from "../../../DB/product.model.js";
 
-export const getProducts = (req,res)=>{
+export const getProducts = (req,res,next)=>{
     return res.json("products ...");
 }
 
-export const createProducts = async (req,res)=>{
+export const createProducts = async (req,res,next)=>{
     const {name,price,discount,categoryId,subcategoryId} = req.body;
     const checkCategory = await categoryModel.findById(categoryId);
     if(!checkCategory){
@@ -19,7 +19,7 @@ export const createProducts = async (req,res)=>{
         return res.status(404).json({message:"subcategory not found"});
     }
     req.body.slug = slugify(name);
-    req.body.finalPrice = price - (price * (discount ||0) / 100);
+    req.body.finalPrice = price - (price * (discount || 0) / 100).toFixed(2);
 
     const {secure_url,public_id}= await cloudinary.uploader.upload(req.files.mainImage[0].path,
         {folder:`${process.env.APP_NAME}/products/${req.body.name}/mainImage`});

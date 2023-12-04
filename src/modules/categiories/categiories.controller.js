@@ -4,13 +4,12 @@ import categoryModel from "../../../DB/category.model.js";
 
 
 
-export const getCategories =async(req,res)=>{
+export const getCategories =async(req,res,next)=>{
     const categiories = await categoryModel.find().populate('subcategory');
     return res.status(200).json({message:"success",categiories});
 }
 
-export const createCategory =async(req,res)=>{
-    try{
+export const createCategory =async(req,res,next)=>{
         const name = req.body.name.toLowerCase();
     if(await categoryModel.findOne({name})){
         return res.status(409).json({message:"category name already exist"});
@@ -22,20 +21,15 @@ export const createCategory =async(req,res)=>{
 createdBy:req.user._id,updatedBy:req.user._id});
 console.log(cat);
 return res.status(201).json({message:"success",cat});
-   
-    }catch(error){
-        console.error(error);
-    }
-    
 }
 
-export const getSpecificCategory =async(req,res)=>{
+export const getSpecificCategory =async(req,res,next)=>{
     const { id } = req.params;
     const category = await categoryModel.findById(id);
     return res.json({message:"success",category});
 }
 
-export const getActiveCategory = async(req,res)=>{
+export const getActiveCategory = async(req,res,next)=>{
     try{
         const categories = await categoryModel.find({status:'Active'}).select('name image');
         return res.status(200).json({message:"success",categories});
@@ -47,7 +41,7 @@ export const getActiveCategory = async(req,res)=>{
 }
 
 
-export const updateCategory = async(req,res)=>{
+export const updateCategory = async(req,res,next)=>{
     const category = await categoryModel.findById(req.params.id);
     if(!category){
         return res.status(404).json({message:`Invalid category id ${req.parmas.id}`});

@@ -4,7 +4,7 @@ import subCategoryModel from "../../../DB/subcategory.model.js";
 import cloudinary from "../../servecies/cloudinary.js";
 
 
-export const createSubCategory = async(req,res)=>{
+export const createSubCategory = async(req,res,next)=>{
     const {name,categoryId} = req.body;
     const subCategory =await subCategoryModel.findOne({name});
     if(subCategory){
@@ -25,7 +25,7 @@ export const createSubCategory = async(req,res)=>{
 
 
 
-export const getSubCategories = async(req,res)=>{
+export const getSubCategories = async(req,res,next)=>{
     const  categoryId = req.params.id;
     const category = await categoryModel.findById(categoryId);
     if(!category){
